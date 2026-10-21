@@ -153,7 +153,7 @@ public class bat : MonoBehaviour
 
             }
 
-            Debug.Log((player2 ? "P2" : "P1") + "：その場で溜め開始！");
+         
 
         }
 
@@ -265,8 +265,7 @@ public class bat : MonoBehaviour
 
         {
 
-            Debug.Log((player2 ? "P2" : "P1") + "：範囲外のため空振り！");
-
+           
             if (airAttacksound != null && audioSource != null)
 
             {
@@ -299,7 +298,7 @@ public class bat : MonoBehaviour
 
         {
 
-            Debug.Log((player2 ? "P2" : "P1") + "：【強・溜め攻撃発動！】");
+      
 
             cooldownDuration = chargedAttackCooldown;
 
@@ -323,7 +322,7 @@ public class bat : MonoBehaviour
 
         {
 
-            Debug.Log((player2 ? "P2" : "P1") + "：【中・溜め攻撃発動！】");
+
 
             cooldownDuration = mediumAttackCooldown;
 
@@ -347,7 +346,7 @@ public class bat : MonoBehaviour
 
         {
 
-            Debug.Log((player2 ? "P2" : "P1") + "：【通常攻撃発動】");
+       
 
             cooldownDuration = normalAttackCooldown;
 
