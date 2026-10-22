@@ -131,7 +131,14 @@ public class bat : MonoBehaviour
 
         // enemyがいない、またはクールダウン中（硬直中）、またはアニメ再生中は入力を受け付けない
 
-        if (enemy == null || isAttackCooldown || isAttacking) return;
+        Controller myController = GetComponent<Controller>();
+
+        if (enemy == null || isAttackCooldown || isAttacking)
+            return;
+
+        if (myController != null &&
+            (myController.isItemStunned || myController.isDead))
+            return;
 
         KeyCode attackKey = player2 ? KeyCode.Joystick2Button5 : KeyCode.Joystick1Button5;
 
@@ -152,8 +159,6 @@ public class bat : MonoBehaviour
                 spriteRenderer.sprite = startChargeSprite;
 
             }
-
-         
 
         }
 
@@ -265,7 +270,6 @@ public class bat : MonoBehaviour
 
         {
 
-           
             if (airAttacksound != null && audioSource != null)
 
             {
@@ -297,9 +301,6 @@ public class bat : MonoBehaviour
         if (releasedChargeTime >= maxChargeTime)
 
         {
-
-      
-
             cooldownDuration = chargedAttackCooldown;
 
             targetAttackSprite = chargedAttackSprite;
@@ -321,9 +322,6 @@ public class bat : MonoBehaviour
         else if (releasedChargeTime >= mediumChargeThreshold)
 
         {
-
-
-
             cooldownDuration = mediumAttackCooldown;
 
             targetAttackSprite = mediumAttackSprite;
@@ -345,9 +343,6 @@ public class bat : MonoBehaviour
         else
 
         {
-
-       
-
             cooldownDuration = normalAttackCooldown;
 
             targetAttackSprite = normalAttackSprite;
@@ -431,11 +426,17 @@ public class bat : MonoBehaviour
         Controller enemyController = enemy.GetComponent<Controller>();
 
         if (enemyController != null)
-
         {
+            AutoGuardItem guard = enemy.GetComponent<AutoGuardItem>();
 
+            // アイテムを持っていれば攻撃を防ぎ、反撃する
+            if (guard != null && guard.TryBlock(GetComponent<Controller>()))
+            {
+                return;
+            }
+
+            // アイテムがなければ通常どおり攻撃を受ける
             enemyController.ReceiveKnockback(directionX, upPower, hitStunDuration);
-
         }
 
         // ★削除：ここでの一律0.5秒のコルーチン開始は削除し、ReleaseAttack側に統合しました
@@ -461,25 +462,33 @@ public class bat : MonoBehaviour
     IEnumerator AttackCooldown(float duration)
 
     {
+
         isAttackCooldown = true;
 
         // 自分のControllerを取得
+
         Controller myController = GetComponent<Controller>();
 
         if (myController != null)
+
         {
+
             myController.isAttackLocked = true;
+
         }
 
         yield return new WaitForSeconds(duration);
 
         if (myController != null)
+
         {
+
             myController.isAttackLocked = false;
+
         }
 
         isAttackCooldown = false;
+
     }
 
 }
-
