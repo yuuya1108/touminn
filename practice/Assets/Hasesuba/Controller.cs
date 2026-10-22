@@ -171,10 +171,15 @@ public class Controller : MonoBehaviour
             if (!player2)
             {
                 inputX = Input.GetAxis("Joy1Horizontal");
-                if (Input.GetKeyDown(KeyCode.Joystick1Button0) && isGrounded)
+                if (Input.GetKeyDown(KeyCode.Joystick1Button0) || Input.GetKeyDown(KeyCode.W) && isGrounded)
                 {
                     Jump(inputX);
                 }
+
+                if (Input.GetKey(KeyCode.A))
+                    inputX = -1;
+                if (Input.GetKey(KeyCode.D))
+                    inputX = 1;
             }
 
             // =========================
@@ -183,10 +188,15 @@ public class Controller : MonoBehaviour
             else
             {
                 inputX = Input.GetAxis("Joy2Horizontal");
-                if (Input.GetKeyDown(KeyCode.Joystick2Button0) && isGrounded)
+                if (Input.GetKeyDown(KeyCode.Joystick2Button0) || Input.GetKeyDown(KeyCode.UpArrow) && isGrounded)
                 {
                     Jump(inputX);
                 }
+
+                if (Input.GetKey(KeyCode.LeftArrow))
+                    inputX = -1;
+                if (Input.GetKey(KeyCode.RightArrow))
+                    inputX = 1;
             }
 
             // =========================
