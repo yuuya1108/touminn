@@ -125,6 +125,7 @@ public class bat : MonoBehaviour
 
     }
 
+
     void Update()
     {
         Controller myController = GetComponent<Controller>();
@@ -188,6 +189,7 @@ public class bat : MonoBehaviour
             ReleaseAttack();
         }
     }
+
 
     void UpdateChargeVisual()
 
@@ -298,14 +300,11 @@ public class bat : MonoBehaviour
 
             targetRecoverySprite = chargedRecoverySprite;
 
-            ExecuteAttack(chargedPowerX, chargedPowerY, chargedHitStun);
+            bool hit = ExecuteAttack(chargedPowerX, chargedPowerY, chargedHitStun);
 
-            if (maxAttacksound != null && audioSource != null)
-
+            if (hit && maxAttacksound != null && audioSource != null)
             {
-
                 audioSource.PlayOneShot(maxAttacksound, 5.0f);
-
             }
 
         }
@@ -319,14 +318,11 @@ public class bat : MonoBehaviour
 
             targetRecoverySprite = mediumRecoverySprite;
 
-            ExecuteAttack(mediumPowerX, mediumPowerY, mediumHitStun);
+            bool hit = ExecuteAttack(mediumPowerX, mediumPowerY, mediumHitStun);
 
-            if (mediumAttacksound != null && audioSource != null)
-
+            if (hit && mediumAttacksound != null && audioSource != null)
             {
-
                 audioSource.PlayOneShot(mediumAttacksound);
-
             }
 
         }
@@ -340,14 +336,11 @@ public class bat : MonoBehaviour
 
             targetRecoverySprite = normalRecoverySprite;
 
-            ExecuteAttack(normalPowerX, normalPowerY, normalHitStun);
+            bool hit = ExecuteAttack(normalPowerX, normalPowerY, normalHitStun);
 
-            if (weakAttacksound != null && audioSource != null)
-
+            if (hit && weakAttacksound != null && audioSource != null)
             {
-
                 audioSource.PlayOneShot(weakAttacksound);
-
             }
 
         }
@@ -392,27 +385,11 @@ public class bat : MonoBehaviour
 
     }
 
-    void ExecuteAttack(float power, float upPower, float hitStunDuration)
-
+    bool ExecuteAttack(float power, float upPower, float hitStunDuration)
     {
-
-        float directionX = 0f;
-
-        if (enemy.position.x > transform.position.x)
-
-        {
-
-            directionX = power;
-
-        }
-
-        else
-
-        {
-
-            directionX = -power;
-
-        }
+        float directionX = enemy.position.x > transform.position.x
+            ? power
+            : -power;
 
         Controller enemyController = enemy.GetComponent<Controller>();
 
@@ -420,18 +397,18 @@ public class bat : MonoBehaviour
         {
             AutoGuardItem guard = enemy.GetComponent<AutoGuardItem>();
 
-            // アイテムを持っていれば攻撃を防ぎ、反撃する
+            // ガードされたら攻撃失敗
             if (guard != null && guard.TryBlock(GetComponent<Controller>()))
             {
-                return;
+                return false;
             }
 
-            // アイテムがなければ通常どおり攻撃を受ける
-            enemyController.ReceiveKnockback(directionX, upPower, hitStunDuration);
+            enemyController.ReceiveKnockback(
+                directionX, upPower, hitStunDuration
+            );
         }
 
-        // ★削除：ここでの一律0.5秒のコルーチン開始は削除し、ReleaseAttack側に統合しました
-
+        return true;
     }
 
     void ResetVisual()

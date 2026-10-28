@@ -231,11 +231,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player2: 0
   isGrounded: 0
-  speed: 10
+  speed: 12
   enemy: {fileID: 363107554}
   stopDistance: 0.4
-  jumpForwardSpeed: 10
-  slowDistance: 3
+  jumpForwardSpeed: 13
+  slowDistance: 4
   isDead: 0
   jumpsound: {fileID: 8300000, guid: f31f2032cb0149f47906358d3e7d8395, type: 3}
   respawnsound: {fileID: 8300000, guid: 2f661b942d4597042bb5cfd7bd8b7214, type: 3}
@@ -243,6 +243,7 @@ MonoBehaviour:
   Bat: {fileID: 0}
   isAttackLocked: 0
   isItemStunned: 0
+  spriteRenderer: {fileID: 240772897}
 --- !u!212 &240772897
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -329,7 +330,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1.5
+  m_GravityScale: 5
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -405,16 +406,16 @@ MonoBehaviour:
   mediumChargeThreshold: 1.5
   maxChargeTime: 3
   autoReleaseTime: 4
-  normalPowerX: 7
-  normalPowerY: 4
+  normalPowerX: 13
+  normalPowerY: 10
   normalHitStun: 0.8
   normalAttackCooldown: 0.6
-  mediumPowerX: 15
-  mediumPowerY: 6
+  mediumPowerX: 25
+  mediumPowerY: 16
   mediumHitStun: 1.5
   mediumAttackCooldown: 1
-  chargedPowerX: 17
-  chargedPowerY: 9
+  chargedPowerX: 30
+  chargedPowerY: 20
   chargedHitStun: 1.5
   chargedAttackCooldown: 1.5
   spriteRenderer: {fileID: 0}
@@ -548,6 +549,7 @@ MonoBehaviour:
   hasItem: 1
   stunDuration: 1.5
   shieldObject: {fileID: 1941596352}
+  Shieldsound: {fileID: 8300000, guid: 8404746db5a870d44be5d24f99c2d0ef, type: 3}
 --- !u!1 &355854015
 GameObject:
   m_ObjectHideFlags: 0
@@ -722,11 +724,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player2: 1
   isGrounded: 0
-  speed: 10
+  speed: 12
   enemy: {fileID: 240772898}
   stopDistance: 0.4
-  jumpForwardSpeed: 10
-  slowDistance: 3
+  jumpForwardSpeed: 13
+  slowDistance: 4
   isDead: 0
   jumpsound: {fileID: 8300000, guid: f31f2032cb0149f47906358d3e7d8395, type: 3}
   respawnsound: {fileID: 8300000, guid: 2f661b942d4597042bb5cfd7bd8b7214, type: 3}
@@ -734,6 +736,7 @@ MonoBehaviour:
   Bat: {fileID: 0}
   isAttackLocked: 0
   isItemStunned: 0
+  spriteRenderer: {fileID: 363107553}
 --- !u!212 &363107553
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -866,7 +869,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1.5
+  m_GravityScale: 5
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -896,16 +899,16 @@ MonoBehaviour:
   mediumChargeThreshold: 1.5
   maxChargeTime: 3
   autoReleaseTime: 4
-  normalPowerX: 7
-  normalPowerY: 4
+  normalPowerX: 13
+  normalPowerY: 10
   normalHitStun: 0.8
   normalAttackCooldown: 0.6
-  mediumPowerX: 15
-  mediumPowerY: 6
+  mediumPowerX: 26
+  mediumPowerY: 16
   mediumHitStun: 1.5
   mediumAttackCooldown: 1
-  chargedPowerX: 17
-  chargedPowerY: 9
+  chargedPowerX: 30
+  chargedPowerY: 20
   chargedHitStun: 1.5
   chargedAttackCooldown: 1.5
   spriteRenderer: {fileID: 0}
@@ -1039,6 +1042,7 @@ MonoBehaviour:
   hasItem: 1
   stunDuration: 1.5
   shieldObject: {fileID: 1671432254}
+  Shieldsound: {fileID: 8300000, guid: 8404746db5a870d44be5d24f99c2d0ef, type: 3}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -2925,7 +2929,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: bedfb20ba171f0240b5faf55c0fd1d87, type: 3}
+  m_Resource: {fileID: 8300000, guid: 9ce27e5b932114d49a067fd696d03b37, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 0.2
   m_Pitch: 1

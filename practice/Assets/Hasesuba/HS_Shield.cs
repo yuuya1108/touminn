@@ -11,8 +11,13 @@ public class AutoGuardItem : MonoBehaviour
 
     public GameObject shieldObject;
 
+    private AudioSource audioSource;
+
+    public AudioClip Shieldsound;
+
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
         shieldObject.SetActive(hasItem);
     }
 
@@ -35,7 +40,10 @@ public class AutoGuardItem : MonoBehaviour
             attacker.ApplyItemStun(stunDuration);
         }
 
-        Debug.Log("自動ガード発動！ アイテムを消費しました。");
+        if (Shieldsound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(Shieldsound);
+        }
 
         return true;
     }

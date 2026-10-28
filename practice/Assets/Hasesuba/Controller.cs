@@ -70,9 +70,12 @@ public class Controller : MonoBehaviour
     public bool isItemStunned = false;
     private Coroutine itemStunCoroutine;
 
+    //プレイヤー振り向き処理
+    public SpriteRenderer spriteRenderer;
+
     void Start()
     {
-        Bat=GetComponent<bat>();
+        Bat = GetComponent<bat>();
 
         audioSource = GetComponent<AudioSource>();
 
@@ -146,12 +149,12 @@ public class Controller : MonoBehaviour
         // =========================
         if (isAttackLocked && !isDead && !isKnockback)
         {
-            if(!isGrounded)
+            if (!isGrounded)
             {
                 float moveX = jumpBlocked
                     ? 0f
                     : LimitJumpMovement(jumpHorizontalspeed);
-                rb.linearVelocity = new Vector2 (moveX, rb.linearVelocity.y);
+                rb.linearVelocity = new Vector2(moveX, rb.linearVelocity.y);
             }
             else
             {
@@ -160,7 +163,7 @@ public class Controller : MonoBehaviour
                     rb.linearVelocity.y
                     );
             }
-                return;
+            return;
         }
         if (!isKnockback && !isDead && !isAttackLocked)
         {
@@ -210,6 +213,17 @@ public class Controller : MonoBehaviour
             if (isGrounded)//地上
             {
                 float moveSpeed = inputX * speed;
+
+                // プレイヤーの振り向き
+                if (inputX > 0)
+                {
+                    spriteRenderer.flipX = false;
+                }
+                else if (inputX < 0)
+                {
+                    spriteRenderer.flipX = true;
+                }
+
                 // 相手に近づくときだけ自然に減速
                 moveSpeed = LimitMovement(moveSpeed);
 
@@ -298,13 +312,13 @@ public class Controller : MonoBehaviour
         else
             jumpHorizontalspeed = 0f;
 
-            rb.linearVelocity = new Vector2(
-                jumpHorizontalspeed,
-                10f
-            );
+        rb.linearVelocity = new Vector2(
+            jumpHorizontalspeed,
+            20f
+        );
 
         //ジャンプサウンド
-        if(jumpsound != null && audioSource !=null)
+        if (jumpsound != null && audioSource != null)
         {
             audioSource.PlayOneShot(jumpsound);
         }
@@ -454,19 +468,19 @@ public class Controller : MonoBehaviour
 
         float stopX;
 
-       if(!player2)
+        if (!player2)
         {
             //P1
             if (jumpHorizontalspeed <= 0f)
                 return;
             stopX = enemy.position.x - stopDistance;
 
-            if(rb.position.x >=stopX)
+            if (rb.position.x >= stopX)
             {
                 jumpBlocked = true;
                 jumpHorizontalspeed = 0f;
 
-                rb.position=new Vector2(stopX,rb.position.y);
+                rb.position = new Vector2(stopX, rb.position.y);
                 rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
             }
         }
@@ -500,16 +514,16 @@ public class Controller : MonoBehaviour
                     isGrounded = true;
 
                     isJumping = false;
-                    jumpBlocked=false;
+                    jumpBlocked = false;
                     jumpHorizontalspeed = 0f;
                 }
             }
         }
 
-        foreach(ContactPoint2D contact in collision.contacts)
+        foreach (ContactPoint2D contact in collision.contacts)
         {
             //側面にぶつかった場合
-            if(Mathf.Abs(contact.normal.x)>0.5f)
+            if (Mathf.Abs(contact.normal.x) > 0.5f)
             {
                 jumpHorizontalspeed = 0f;
                 rb.linearVelocity = new Vector2(
@@ -555,7 +569,7 @@ public class Controller : MonoBehaviour
             isDead = true;
             isJumping = false;
 
-            if(deadsound != null&& audioSource!=null)
+            if (deadsound != null && audioSource != null)
             {
                 audioSource.PlayOneShot(deadsound);
             }
@@ -642,7 +656,7 @@ public class Controller : MonoBehaviour
             //リスポーンサウンド
             if (respawnsound != null && audioSource != null)
             {
-                audioSource.PlayOneShot(respawnsound,0.3f);
+                audioSource.PlayOneShot(respawnsound, 0.3f);
             }
         }
     }
