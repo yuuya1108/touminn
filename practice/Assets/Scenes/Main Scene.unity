@@ -310,7 +310,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 240772895}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 32.84, y: -5.58, z: 0}
   m_LocalScale: {x: 2, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
@@ -444,7 +444,7 @@ MonoBehaviour:
   airAttacksound: {fileID: 8300000, guid: 7b33a11128dd219468c39d5073e5f66c, type: 3}
   hasMetalBat: 0
   metalBatDurability: 3
-  metalPowerMultiplier: 1.5
+  metalPowerMultiplier: 1.2
   metalBatObject: {fileID: 888014579}
 --- !u!82 &240772902
 AudioSource:
@@ -1164,7 +1164,7 @@ MonoBehaviour:
   airAttacksound: {fileID: 8300000, guid: 7b33a11128dd219468c39d5073e5f66c, type: 3}
   hasMetalBat: 0
   metalBatDurability: 3
-  metalPowerMultiplier: 1.5
+  metalPowerMultiplier: 1.2
   metalBatObject: {fileID: 1302646306}
 --- !u!82 &363107558
 AudioSource:
