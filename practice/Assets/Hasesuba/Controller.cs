@@ -96,6 +96,17 @@ public class Controller : MonoBehaviour
 
     void Update()
     {
+        if (isItemStunned)
+        {
+            // シールド硬直中でも、ノックバック中なら速度をゼロにしない
+            if (!GetComponent<PlayerKnockback>().IsKnockbacked
+                && !isKnockback)
+            {
+                rb.linearVelocity = Vector2.zero;
+            }
+
+            return;
+        }
         //タイトルに戻る
         if (Input.GetKeyDown(KeyCode.Joystick1Button7))
         {
@@ -143,7 +154,10 @@ public class Controller : MonoBehaviour
         //        StartCoroutine(Knockback());
         //    }
         //}
-
+        if (GetComponent<PlayerKnockback>().IsKnockbacked)
+        {
+            return;
+        }
         // =========================
         // 通常操作
         // =========================
@@ -215,14 +229,34 @@ public class Controller : MonoBehaviour
                 float moveSpeed = inputX * speed;
 
                 // プレイヤーの振り向き
-                if (inputX > 0)
+
+                if (!player2)
+
                 {
-                    spriteRenderer.flipX = false;
+                    if (inputX > 0)
+                    {
+                        spriteRenderer.flipX = false;
+                    }
+
+                    else if (inputX < 0)
+                    {
+                        spriteRenderer.flipX = true;
+                    }
                 }
-                else if (inputX < 0)
+
+                else
                 {
-                    spriteRenderer.flipX = true;
+                    if (inputX < 0)
+                    {
+                        spriteRenderer.flipX = false;
+                    }
+
+                    else if (inputX > 0)
+                    {
+                        spriteRenderer.flipX = true;
+                    }
                 }
+
 
                 // 相手に近づくときだけ自然に減速
                 moveSpeed = LimitMovement(moveSpeed);
@@ -424,25 +458,35 @@ public class Controller : MonoBehaviour
     float SlowDown(float moveSpeed, float distance)
     {
         if (isDead == true)
+
             return moveSpeed;
 
         if (distance <= stopDistance)
+
         {
+
             return 0;
+
         }
 
         // 0～1
+
         float ratio =
+
             (distance - stopDistance) /
+
             (slowDistance - stopDistance);
 
         // なめらかに減速
+
         ratio = Mathf.Clamp01(ratio);
 
         // SmoothStepで自然にする
+
         ratio = ratio * ratio * (3f - 2f * ratio);
 
         return moveSpeed * ratio;
+
     }
 
     // =========================
@@ -451,6 +495,7 @@ public class Controller : MonoBehaviour
     void FixedUpdate()
     {
         PreventJumpPassing();
+        PreventPlayerCrossing();
     }
 
     // =========================
@@ -681,7 +726,66 @@ public class Controller : MonoBehaviour
         isItemStunned = false;
         itemStunCoroutine = null;
     }
+    private void PreventPlayerCrossing()
+    {
+        if (enemy == null || rb == null || isDead)
+            return;
 
+        Controller enemyController = enemy.GetComponent<Controller>();
+
+        if (enemyController != null && enemyController.isDead)
+            return;
+
+        float boundary;
+
+        if (!player2)
+        {
+            // P1はP2の左側を維持する
+            boundary = enemy.position.x - stopDistance;
+
+            if (rb.position.x > boundary)
+            {
+                rb.position = new Vector2(boundary, rb.position.y);
+
+                if (rb.linearVelocity.x > 0f)
+                {
+                    rb.linearVelocity = new Vector2(
+                        0f,
+                        rb.linearVelocity.y
+                    );
+                }
+            }
+        }
+        else
+        {
+            // P2はP1の右側を維持する
+            boundary = enemy.position.x + stopDistance;
+
+            if (rb.position.x < boundary)
+            {
+                rb.position = new Vector2(boundary, rb.position.y);
+
+                if (rb.linearVelocity.x < 0f)
+                {
+                    rb.linearVelocity = new Vector2(
+                        0f,
+                        rb.linearVelocity.y
+                    );
+                }
+            }
+        }
+
+    }
+    public IEnumerator SpeedUp()
+    {
+        float originalSpeed = speed;
+
+        speed *= 1.5f;
+
+        yield return new WaitForSeconds(10f);
+
+        speed = originalSpeed;
+    }
     //// =========================
     //// 吹き飛ばし
     //// =========================
