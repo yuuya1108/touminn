@@ -109,7 +109,7 @@ public class bat : MonoBehaviour
 
         KeyCode gamepadAttackKey = player2
             ? KeyCode.Joystick2Button5
-            : KeyCode.JoystickButton5;
+            : KeyCode.Joystick1Button5;
 
         bool keyDown =
             Input.GetKeyDown(attackKey) ||
