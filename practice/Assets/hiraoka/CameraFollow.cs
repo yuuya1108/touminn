@@ -21,6 +21,42 @@ public class CameraFollow2DFight : MonoBehaviour
     private Controller p1Controller;
     private Controller p2Controller;
 
+    [Header("死亡・リスポーン時のカメラ移動")]
+    public float transitionSpeed = 1.5f;
+
+    private bool isTransitioning = false;
+    private float transitionTimer = 0f;
+    private float transitionStartX;
+    private float transitionTargetX;
+
+    private bool wasP1Alive = true;
+    private bool wasP2Alive = true;
+
+    void RestrictPlayersInScreen(bool p1Alive, bool p2Alive)
+    {
+        if (cam == null) return;
+
+        float screenHalfWidth = cam.orthographicSize *
+            ((float)Screen.width / Screen.height);
+
+        float minX = transform.position.x - screenHalfWidth + screenPadding;
+        float maxX = transform.position.x + screenHalfWidth - screenPadding;
+
+        if (p1Alive)
+        {
+            Vector3 p1Pos = player1.position;
+            p1Pos.x = Mathf.Clamp(p1Pos.x, minX, maxX);
+            player1.position = p1Pos;
+        }
+
+        if (p2Alive)
+        {
+            Vector3 p2Pos = player2.position;
+            p2Pos.x = Mathf.Clamp(p2Pos.x, minX, maxX);
+            player2.position = p2Pos;
+        }
+    }
+
     void Start()
     {
         cam = GetComponent<Camera>();
@@ -35,100 +71,151 @@ public class CameraFollow2DFight : MonoBehaviour
     {
         if (player1 == null || player2 == null) return;
 
-        // 呼び出し先（Controller）のisDeadフラグから生存判定を取得
         bool p1Alive = p1Controller != null ? !p1Controller.isDead : true;
         bool p2Alive = p2Controller != null ? !p2Controller.isDead : true;
 
-        // 1. 通常の目標X座標を計算（ベースとなる追従処理）
-        float targetX = transform.position.x;
+        // 死亡・リスポーンを検知
+        if (p1Alive != wasP1Alive || p2Alive != wasP2Alive)
+        {
+            float targetX = transform.position.x;
+
+            if (p1Alive && p2Alive)
+            {
+                // 2人とも生存：2人の中央
+                targetX = (player1.position.x + player2.position.x) / 2f;
+            }
+            else if (p1Alive)
+            {
+                // プレイヤー1のみ生存
+                targetX = player1.position.x;
+            }
+            else if (p2Alive)
+            {
+                // プレイヤー2のみ生存
+                targetX = player2.position.x;
+            }
+
+            // カメラ移動開始
+            transitionStartX = transform.position.x;
+            transitionTargetX = targetX;
+            transitionTimer = 0f;
+            isTransitioning = true;
+        }
+
+        wasP1Alive = p1Alive;
+        wasP2Alive = p2Alive;
+
+        float targetXNormal = transform.position.x;
 
         if (p1Alive && p2Alive)
         {
-            targetX = (player1.position.x + player2.position.x) / 2f;
+            targetXNormal = (player1.position.x + player2.position.x) / 2f;
         }
-        else if (!p1Alive && p2Alive)
+        else if (p1Alive)
         {
-            targetX = player2.position.x;
+            targetXNormal = player1.position.x;
         }
-        else if (p1Alive && !p2Alive)
+        else if (p2Alive)
         {
-            targetX = player1.position.x;
+            targetXNormal = player2.position.x;
         }
 
-        // なめらかな目標座標への移動（ベース）
-        Vector3 targetPosition = new Vector3(targetX, transform.position.y, transform.position.z);
-        transform.position = Vector3.Lerp(transform.position, targetPosition, smoothSpeed * Time.deltaTime);
-
-        // 2. 画面端を押し出す処理（生存しているプレイヤーが端にいたらカメラを強制移動）
-        if (cam != null)
+        // カメラ移動
+        if (isTransitioning)
         {
-            float screenHalfWidth = cam.orthographicSize * ((float)Screen.width / Screen.height);
+            transitionTimer += Time.deltaTime * transitionSpeed;
 
-            // カメラがこれ以上外にいったらプレイヤーを押し出すと判定する境界（プッシュゾーン）
-            float leftPushBound = transform.position.x - screenHalfWidth + pushZoneWidth;
-            float rightPushBound = transform.position.x + screenHalfWidth - pushZoneWidth;
+            float t = Mathf.SmoothStep(0f, 1f,
+                Mathf.Clamp01(transitionTimer));
 
-            // プレイヤー1の押し出し判定
+            // 2人が生存している場合は中央を追従しながら移動
+            if (p1Alive && p2Alive)
+            {
+                transitionTargetX =
+                    (player1.position.x + player2.position.x) / 2f;
+            }
+            else if (p1Alive)
+            {
+                transitionTargetX = player1.position.x;
+            }
+            else if (p2Alive)
+            {
+                transitionTargetX = player2.position.x;
+            }
+
+            float newX = Mathf.Lerp(
+                transitionStartX,
+                transitionTargetX,
+                t
+            );
+
+            transform.position = new Vector3(
+                newX,
+                transform.position.y,
+                transform.position.z
+            );
+
+            if (transitionTimer >= 1f)
+            {
+                isTransitioning = false;
+            }
+        }
+        else
+        {
+            Vector3 targetPosition = new Vector3(
+                targetXNormal,
+                transform.position.y,
+                transform.position.z
+            );
+
+            transform.position = Vector3.Lerp(
+                transform.position,
+                targetPosition,
+                smoothSpeed * Time.deltaTime
+            );
+        }
+
+        // 画面端の押し出し処理
+        if (cam != null && !isTransitioning)
+        {
+            float screenHalfWidth = cam.orthographicSize *
+                ((float)Screen.width / Screen.height);
+
+            float leftPushBound = transform.position.x -
+                screenHalfWidth + pushZoneWidth;
+
+            float rightPushBound = transform.position.x +
+                screenHalfWidth - pushZoneWidth;
+
             if (p1Alive)
             {
                 if (player1.position.x > rightPushBound)
                 {
-                    float overlap = player1.position.x - rightPushBound;
-                    transform.position += new Vector3(overlap, 0, 0);
+                    transform.position += new Vector3(
+                        player1.position.x - rightPushBound, 0, 0);
                 }
                 else if (player1.position.x < leftPushBound)
                 {
-                    float overlap = player1.position.x - leftPushBound;
-                    transform.position += new Vector3(overlap, 0, 0);
+                    transform.position += new Vector3(
+                        player1.position.x - leftPushBound, 0, 0);
                 }
             }
 
-            // プレイヤー2の押し出し判定
             if (p2Alive)
             {
                 if (player2.position.x > rightPushBound)
                 {
-                    float overlap = player2.position.x - rightPushBound;
-                    transform.position += new Vector3(overlap, 0, 0);
+                    transform.position += new Vector3(
+                        player2.position.x - rightPushBound, 0, 0);
                 }
                 else if (player2.position.x < leftPushBound)
                 {
-                    float overlap = player2.position.x - leftPushBound;
-                    transform.position += new Vector3(overlap, 0, 0);
+                    transform.position += new Vector3(
+                        player2.position.x - leftPushBound, 0, 0);
                 }
             }
         }
 
-        // 3. 最終的なカメラ位置を基準に、プレイヤーを画面内に閉じ込める
-        // ※ただし、死亡している（リスポーン待機中の）プレイヤーは閉じ込め処理から除外する
         RestrictPlayersInScreen(p1Alive, p2Alive);
-    }
-
-    /// <summary>
-    /// 生存しているプレイヤーがカメラの外に出ないように位置を制限する
-    /// </summary>
-    void RestrictPlayersInScreen(bool p1Alive, bool p2Alive)
-    {
-        if (cam == null) return;
-
-        float screenHalfWidth = cam.orthographicSize * ((float)Screen.width / Screen.height);
-        float minX = transform.position.x - screenHalfWidth + screenPadding;
-        float maxX = transform.position.x + screenHalfWidth - screenPadding;
-
-        // プレイヤー1が生存している場合のみ画面内に閉じ込める
-        if (p1Alive)
-        {
-            Vector3 p1Pos = player1.position;
-            p1Pos.x = Mathf.Clamp(p1Pos.x, minX, maxX);
-            player1.position = p1Pos;
-        }
-
-        // プレイヤー2が生存している場合のみ画面内に閉じ込める
-        if (p2Alive)
-        {
-            Vector3 p2Pos = player2.position;
-            p2Pos.x = Mathf.Clamp(p2Pos.x, minX, maxX);
-            player2.position = p2Pos;
-        }
     }
 }
