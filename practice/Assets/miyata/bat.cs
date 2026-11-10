@@ -194,11 +194,14 @@ public class bat : MonoBehaviour
 
     private float GetFacingDirection()
     {
-        if (enemy != null)
-            return enemy.position.x >= transform.position.x ? 1f : -1f;
+        if (spriteRenderer != null)
+        {
+            bool facingRight = player2
+                ? spriteRenderer.flipX
+                : !spriteRenderer.flipX;
 
-        if (zombieEnemy != null)
-            return zombieEnemy.position.x >= transform.position.x ? 1f : -1f;
+            return facingRight ? 1f : -1f;
+        }
 
         return player2 ? -1f : 1f;
     }
@@ -262,18 +265,18 @@ public class bat : MonoBehaviour
         // 相手プレイヤーの判定
         if (enemy != null)
         {
-            float dx = Mathf.Abs(
-                enemy.position.x - transform.position.x
-            );
+            float dx =
+                (enemy.position.x - transform.position.x) * direction;
 
             float dy = Mathf.Abs(
                 enemy.position.y - transform.position.y
             );
 
-            if (dx <= attackRangeX && dy <= attackRangeY)
+            if (dx >= 0f && dx <= attackRangeX && dy <= attackRangeY)
                 return true;
         }
 
+        // 対象がいなければfalseを返す
         return false;
     }
 
@@ -451,15 +454,14 @@ public class bat : MonoBehaviour
         // ③ 相手プレイヤーへの攻撃
         if (enemy != null)
         {
-            float dx = Mathf.Abs(
-                enemy.position.x - transform.position.x
-            );
-
+            // 自分が向いている方向に相手がいるか確認する
+            float dx = (enemy.position.x - transform.position.x) * direction;
             float dy = Mathf.Abs(
                 enemy.position.y - transform.position.y
             );
 
-            if (dx <= attackRangeX && dy <= attackRangeY)
+            // 背後にいる相手には攻撃を当てない
+            if (dx >= 0f && dx <= attackRangeX && dy <= attackRangeY)
             {
                 Controller enemyController =
                     enemy.GetComponent<Controller>();
@@ -529,6 +531,17 @@ public class bat : MonoBehaviour
     // 木箱を壊したプレイヤーにランダムでアイテムを付与
     public void GetRandomItem()
     {
+        // すでに何かアイテムを持っている場合は、新しいアイテムを取得しない
+        AutoGuardItem currentGuard = GetComponent<AutoGuardItem>();
+        Controller currentController = GetComponent<Controller>();
+
+        if (hasMetalBat ||
+            (currentGuard != null && currentGuard.hasItem) ||
+            (currentController != null && currentController.hasSpeedUpItem))
+        {
+            Debug.Log("すでにアイテムを持っているため、新しいアイテムは取得できません。");
+            return;
+        }
         // 0～2の3種類からランダム選択
         int itemNumber = Random.Range(0, 3);
 

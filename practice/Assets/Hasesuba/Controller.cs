@@ -73,6 +73,7 @@ public class Controller : MonoBehaviour
     //プレイヤー振り向き処理
     public SpriteRenderer spriteRenderer;
 
+    public bool hasSpeedUpItem = false;
     void Start()
     {
         Bat = GetComponent<bat>();
@@ -778,6 +779,12 @@ public class Controller : MonoBehaviour
     }
     public IEnumerator SpeedUp()
     {
+        // すでにスピードアップ中なら重ねて発動しない
+        if (hasSpeedUpItem)
+            yield break;
+
+        hasSpeedUpItem = true;
+
         float originalSpeed = speed;
 
         speed *= 1.5f;
@@ -785,6 +792,7 @@ public class Controller : MonoBehaviour
         yield return new WaitForSeconds(10f);
 
         speed = originalSpeed;
+        hasSpeedUpItem = false;
     }
 
     //// =========================
