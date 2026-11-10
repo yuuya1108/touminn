@@ -1,6 +1,8 @@
 
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 public class bat : MonoBehaviour
 {
@@ -76,8 +78,14 @@ public class bat : MonoBehaviour
     private Sprite woodenBatSprite;
     private SpriteRenderer batSpriteRenderer;
 
+    public Controller controller;
+    public AutoGuardItem shield;
+
     private void Start()
     {
+        controller = GetComponent<Controller>();
+        shield = GetComponent<AutoGuardItem>();
+
         audioSource = GetComponent<AudioSource>();
 
         if (spriteRenderer == null)
@@ -95,6 +103,17 @@ public class bat : MonoBehaviour
     private void Update()
     {
         Controller myController = GetComponent<Controller>();
+        //死ぬとアイテム削除
+        if (controller.isDead == true)
+        {
+            BreakMetalBat();
+            shield.hasItem = false;
+            if (shield.shieldObject != null)
+            {
+                shield.shieldObject.SetActive(false);
+            }
+
+        }
 
         if (isAttackCooldown || isAttacking)
             return;
@@ -542,8 +561,6 @@ public class bat : MonoBehaviour
 
             case 2:
                 // スピードアップ
-                Controller controller = GetComponent<Controller>();
-
                 if (controller != null)
                 {
                     controller.StartCoroutine(controller.SpeedUp());
@@ -589,9 +606,6 @@ public class bat : MonoBehaviour
 
         if (batSpriteRenderer != null && woodenBatSprite != null)
             batSpriteRenderer.sprite = woodenBatSprite;
-
-        Debug.Log("金属バットが壊れて木製バットに戻った！");
     }
-
 }
 

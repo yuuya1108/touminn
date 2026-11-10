@@ -13,8 +13,12 @@ public class TitleController : MonoBehaviour
 
     private int selectedIndex = 0;
 
+    public AudioClip selectSound;
+    private AudioSource audioSource;
+
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
         UpdateButtonColors();
     }
 
@@ -29,6 +33,8 @@ public class TitleController : MonoBehaviour
             if (selectedIndex < 0)
                 selectedIndex = buttons.Length - 1;
 
+            audioSource.PlayOneShot(selectSound);
+
             UpdateButtonColors();
         }
         else if (Gamepad.current.dpad.down.wasPressedThisFrame)
@@ -37,6 +43,8 @@ public class TitleController : MonoBehaviour
 
             if (selectedIndex >= buttons.Length)
                 selectedIndex = 0;
+
+            audioSource.PlayOneShot(selectSound);
 
             UpdateButtonColors();
         }

@@ -701,7 +701,7 @@ public class Controller : MonoBehaviour
             //リスポーンサウンド
             if (respawnsound != null && audioSource != null)
             {
-                audioSource.PlayOneShot(respawnsound, 0.3f);
+                audioSource.PlayOneShot(respawnsound, 1f);
             }
         }
     }
@@ -786,6 +786,7 @@ public class Controller : MonoBehaviour
 
         speed = originalSpeed;
     }
+
     //// =========================
     //// 吹き飛ばし
     //// =========================
