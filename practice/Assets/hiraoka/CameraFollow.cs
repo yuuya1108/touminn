@@ -1,3 +1,4 @@
+
 using UnityEngine;
 
 public class CameraFollow2DFight : MonoBehaviour
@@ -8,140 +9,106 @@ public class CameraFollow2DFight : MonoBehaviour
     [Header("追従のなめらかさ")]
     public float smoothSpeed = 5f;
 
-    [Header("画面端の余白（プレイヤーの幅に合わせる）")]
+    [Header("画面端の余白")]
     public float screenPadding = 0.5f;
 
     [Header("カメラを押し出せる画面端からの距離")]
     [Range(0.1f, 2.0f)]
     public float pushZoneWidth = 0.8f;
 
+    [Header("死亡・リスポーン時の切り替え時間")]
+    public float transitionDuration = 2.0f;
+
     private Camera cam;
 
-    // プレイヤーのControllerスクリプトへの参照
     private Controller p1Controller;
     private Controller p2Controller;
-
-    [Header("死亡・リスポーン時のカメラ移動")]
-    public float transitionSpeed = 1.5f;
-
-    private bool isTransitioning = false;
-    private float transitionTimer = 0f;
-    private float transitionStartX;
-    private float transitionTargetX;
 
     private bool wasP1Alive = true;
     private bool wasP2Alive = true;
 
-    void RestrictPlayersInScreen(bool p1Alive, bool p2Alive)
-    {
-        if (cam == null) return;
+    private bool isTransitioning = false;
+    private float transitionTimer = 0f;
 
-        float screenHalfWidth = cam.orthographicSize *
-            ((float)Screen.width / Screen.height);
-
-        float minX = transform.position.x - screenHalfWidth + screenPadding;
-        float maxX = transform.position.x + screenHalfWidth - screenPadding;
-
-        if (p1Alive)
-        {
-            Vector3 p1Pos = player1.position;
-            p1Pos.x = Mathf.Clamp(p1Pos.x, minX, maxX);
-            player1.position = p1Pos;
-        }
-
-        if (p2Alive)
-        {
-            Vector3 p2Pos = player2.position;
-            p2Pos.x = Mathf.Clamp(p2Pos.x, minX, maxX);
-            player2.position = p2Pos;
-        }
-    }
+    private float transitionStartX;
+    private float transitionTargetX;
 
     void Start()
     {
         cam = GetComponent<Camera>();
-        if (cam == null) cam = Camera.main;
+        if (cam == null)
+            cam = Camera.main;
 
-        // 各プレイヤーのControllerスクリプトを取得
-        if (player1 != null) p1Controller = player1.GetComponent<Controller>();
-        if (player2 != null) p2Controller = player2.GetComponent<Controller>();
+        if (player1 != null)
+            p1Controller = player1.GetComponent<Controller>();
+
+        if (player2 != null)
+            p2Controller = player2.GetComponent<Controller>();
+
+        wasP1Alive = IsP1Alive();
+        wasP2Alive = IsP2Alive();
+    }
+
+    bool IsP1Alive()
+    {
+        return p1Controller != null ? !p1Controller.isDead : true;
+    }
+
+    bool IsP2Alive()
+    {
+        return p2Controller != null ? !p2Controller.isDead : true;
+    }
+
+    float GetTargetX(bool p1Alive, bool p2Alive)
+    {
+        if (p1Alive && p2Alive)
+        {
+            return (player1.position.x + player2.position.x) / 2f;
+        }
+        else if (p1Alive)
+        {
+            return player1.position.x;
+        }
+        else if (p2Alive)
+        {
+            return player2.position.x;
+        }
+
+        return transform.position.x;
     }
 
     void LateUpdate()
     {
-        if (player1 == null || player2 == null) return;
+        if (player1 == null || player2 == null)
+            return;
 
-        bool p1Alive = p1Controller != null ? !p1Controller.isDead : true;
-        bool p2Alive = p2Controller != null ? !p2Controller.isDead : true;
+        bool p1Alive = IsP1Alive();
+        bool p2Alive = IsP2Alive();
 
         // 死亡・リスポーンを検知
         if (p1Alive != wasP1Alive || p2Alive != wasP2Alive)
         {
-            float targetX = transform.position.x;
-
-            if (p1Alive && p2Alive)
-            {
-                // 2人とも生存：2人の中央
-                targetX = (player1.position.x + player2.position.x) / 2f;
-            }
-            else if (p1Alive)
-            {
-                // プレイヤー1のみ生存
-                targetX = player1.position.x;
-            }
-            else if (p2Alive)
-            {
-                // プレイヤー2のみ生存
-                targetX = player2.position.x;
-            }
-
-            // カメラ移動開始
-            transitionStartX = transform.position.x;
-            transitionTargetX = targetX;
-            transitionTimer = 0f;
-            isTransitioning = true;
+            StartCameraTransition(p1Alive, p2Alive);
         }
 
         wasP1Alive = p1Alive;
         wasP2Alive = p2Alive;
 
-        float targetXNormal = transform.position.x;
-
-        if (p1Alive && p2Alive)
-        {
-            targetXNormal = (player1.position.x + player2.position.x) / 2f;
-        }
-        else if (p1Alive)
-        {
-            targetXNormal = player1.position.x;
-        }
-        else if (p2Alive)
-        {
-            targetXNormal = player2.position.x;
-        }
+        float targetX = GetTargetX(p1Alive, p2Alive);
 
         // カメラ移動
         if (isTransitioning)
         {
-            transitionTimer += Time.deltaTime * transitionSpeed;
+            transitionTimer += Time.deltaTime;
 
-            float t = Mathf.SmoothStep(0f, 1f,
-                Mathf.Clamp01(transitionTimer));
+            float t = transitionDuration > 0f
+                ? Mathf.Clamp01(transitionTimer / transitionDuration)
+                : 1f;
 
-            // 2人が生存している場合は中央を追従しながら移動
-            if (p1Alive && p2Alive)
-            {
-                transitionTargetX =
-                    (player1.position.x + player2.position.x) / 2f;
-            }
-            else if (p1Alive)
-            {
-                transitionTargetX = player1.position.x;
-            }
-            else if (p2Alive)
-            {
-                transitionTargetX = player2.position.x;
-            }
+            t = Mathf.SmoothStep(0f, 1f, t);
+
+            // 移動先を常に更新
+            transitionTargetX = targetX;
 
             float newX = Mathf.Lerp(
                 transitionStartX,
@@ -155,7 +122,7 @@ public class CameraFollow2DFight : MonoBehaviour
                 transform.position.z
             );
 
-            if (transitionTimer >= 1f)
+            if (transitionTimer >= transitionDuration)
             {
                 isTransitioning = false;
             }
@@ -163,7 +130,7 @@ public class CameraFollow2DFight : MonoBehaviour
         else
         {
             Vector3 targetPosition = new Vector3(
-                targetXNormal,
+                targetX,
                 transform.position.y,
                 transform.position.z
             );
@@ -191,13 +158,13 @@ public class CameraFollow2DFight : MonoBehaviour
             {
                 if (player1.position.x > rightPushBound)
                 {
-                    transform.position += new Vector3(
-                        player1.position.x - rightPushBound, 0, 0);
+                    transform.position += Vector3.right *
+                        (player1.position.x - rightPushBound);
                 }
                 else if (player1.position.x < leftPushBound)
                 {
-                    transform.position += new Vector3(
-                        player1.position.x - leftPushBound, 0, 0);
+                    transform.position += Vector3.right *
+                        (player1.position.x - leftPushBound);
                 }
             }
 
@@ -205,17 +172,58 @@ public class CameraFollow2DFight : MonoBehaviour
             {
                 if (player2.position.x > rightPushBound)
                 {
-                    transform.position += new Vector3(
-                        player2.position.x - rightPushBound, 0, 0);
+                    transform.position += Vector3.right *
+                        (player2.position.x - rightPushBound);
                 }
                 else if (player2.position.x < leftPushBound)
                 {
-                    transform.position += new Vector3(
-                        player2.position.x - leftPushBound, 0, 0);
+                    transform.position += Vector3.right *
+                        (player2.position.x - leftPushBound);
                 }
             }
         }
 
-        RestrictPlayersInScreen(p1Alive, p2Alive);
+        if (!isTransitioning)
+        {
+            RestrictPlayersInScreen(p1Alive, p2Alive);
+        }
+    }
+
+    void StartCameraTransition(bool p1Alive, bool p2Alive)
+    {
+        isTransitioning = true;
+        transitionTimer = 0f;
+
+        transitionStartX = transform.position.x;
+        transitionTargetX = GetTargetX(p1Alive, p2Alive);
+    }
+
+    void RestrictPlayersInScreen(bool p1Alive, bool p2Alive)
+    {
+        if (cam == null)
+            return;
+
+        float screenHalfWidth = cam.orthographicSize *
+            ((float)Screen.width / Screen.height);
+
+        float minX = transform.position.x -
+            screenHalfWidth + screenPadding;
+
+        float maxX = transform.position.x +
+            screenHalfWidth - screenPadding;
+
+        if (p1Alive)
+        {
+            Vector3 pos = player1.position;
+            pos.x = Mathf.Clamp(pos.x, minX, maxX);
+            player1.position = pos;
+        }
+
+        if (p2Alive)
+        {
+            Vector3 pos = player2.position;
+            pos.x = Mathf.Clamp(pos.x, minX, maxX);
+            player2.position = pos;
+        }
     }
 }

@@ -247,6 +247,7 @@ MonoBehaviour:
   isAttackLocked: 0
   isItemStunned: 0
   spriteRenderer: {fileID: 240772897}
+  hasSpeedUpItem: 0
 --- !u!212 &240772897
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -969,6 +970,7 @@ MonoBehaviour:
   isAttackLocked: 0
   isItemStunned: 0
   spriteRenderer: {fileID: 363107553}
+  hasSpeedUpItem: 0
 --- !u!212 &363107553
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1636,6 +1638,7 @@ MonoBehaviour:
   smoothSpeed: 5
   screenPadding: 0.5
   pushZoneWidth: 0.8
+  transitionDuration: 0.8
 --- !u!1 &548573662
 GameObject:
   m_ObjectHideFlags: 0
