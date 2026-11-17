@@ -26,6 +26,8 @@ public class Controller : MonoBehaviour
     public float slowDistance = 3f;
 
     private Rigidbody2D rb;
+    private Animator animator;
+
     private bool isKnockback = false;
 
     // ジャンプを始めたとき、自分が相手のどちら側にいたか
@@ -45,6 +47,8 @@ public class Controller : MonoBehaviour
 
     //リスポーン
     private Transform lastAttacker;
+
+    public ParticleSystem respawnDust;
 
     //ジャンプ音
     public AudioClip jumpsound;
@@ -77,6 +81,8 @@ public class Controller : MonoBehaviour
     void Start()
     {
         Bat = GetComponent<bat>();
+
+        animator = GetComponent<Animator>();
 
         audioSource = GetComponent<AudioSource>();
 
@@ -692,6 +698,18 @@ public class Controller : MonoBehaviour
                 hit.point.y + 1f,
                 transform.position.z
             );
+
+            // 復活アニメーション再生
+            if (animator != null)
+            {
+                animator.Play("Respawn", 0, 0f);
+            }
+
+            //土埃
+            if(respawnDust!=null)
+            {
+                respawnDust.Play();
+            }
 
             // 速度などをリセット
             rb.linearVelocity = Vector2.zero;
