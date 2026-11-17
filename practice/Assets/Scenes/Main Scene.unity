@@ -240,6 +240,7 @@ MonoBehaviour:
   jumpForwardSpeed: 13
   slowDistance: 4
   isDead: 0
+  respawnDust: {fileID: 0}
   jumpsound: {fileID: 8300000, guid: f31f2032cb0149f47906358d3e7d8395, type: 3}
   respawnsound: {fileID: 8300000, guid: 8a7ea4350cb7fcc408cd2899512e3009, type: 3}
   deadsound: {fileID: 8300000, guid: 47228ffae334a244da08f1ee6cd1adc9, type: 3}
@@ -447,6 +448,10 @@ MonoBehaviour:
   metalBatDurability: 3
   metalPowerMultiplier: 1.2
   metalBatObject: {fileID: 888014579}
+  hasBrokenBat: 0
+  brokenBatDurability: 3
+  brokenPowerMultiplier: 0.7
+  brokenBatObject: {fileID: 0}
   controller: {fileID: 0}
   shield: {fileID: 0}
 --- !u!82 &240772902
@@ -963,6 +968,7 @@ MonoBehaviour:
   jumpForwardSpeed: 13
   slowDistance: 4
   isDead: 0
+  respawnDust: {fileID: 0}
   jumpsound: {fileID: 8300000, guid: f31f2032cb0149f47906358d3e7d8395, type: 3}
   respawnsound: {fileID: 8300000, guid: 8a7ea4350cb7fcc408cd2899512e3009, type: 3}
   deadsound: {fileID: 8300000, guid: 47228ffae334a244da08f1ee6cd1adc9, type: 3}
@@ -1170,6 +1176,10 @@ MonoBehaviour:
   metalBatDurability: 3
   metalPowerMultiplier: 1.2
   metalBatObject: {fileID: 1302646306}
+  hasBrokenBat: 0
+  brokenBatDurability: 3
+  brokenPowerMultiplier: 0.7
+  brokenBatObject: {fileID: 0}
   controller: {fileID: 0}
   shield: {fileID: 0}
 --- !u!82 &363107558

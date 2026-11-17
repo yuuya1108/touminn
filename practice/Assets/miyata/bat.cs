@@ -2,6 +2,7 @@
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 public class bat : MonoBehaviour
 {
@@ -74,6 +75,14 @@ public class bat : MonoBehaviour
     [Header("金属バットの見た目")]
     public GameObject metalBatObject;
 
+    // --- ★追加：壊れかけのバット設定 ---
+    [Header("壊れかけのバット")] public bool hasBrokenBat = false;
+    public int brokenBatDurability = 3;
+    // 3回当てたら壊れる
+    public float brokenPowerMultiplier = 0.5f;
+    // 威力は通常の0.5倍（弱体化）
+    [Header("壊れかけのバットの見た目")] public GameObject brokenBatObject;
+
     private Sprite woodenBatSprite;
     private SpriteRenderer batSpriteRenderer;
 
@@ -106,6 +115,7 @@ public class bat : MonoBehaviour
         if (controller.isDead == true)
         {
             BreakMetalBat();
+            BreakBrokenBat(); // ★追加：死亡時に壊れかけバットも消す
             shield.hasItem = false;
             if (shield.shieldObject != null)
             {
@@ -386,6 +396,13 @@ public class bat : MonoBehaviour
             finalPowerX *= metalPowerMultiplier;
             finalPowerY *= metalPowerMultiplier;
         }
+        else if (hasBrokenBat)
+        {
+            // 壊れかけのバットの吹っ飛び率を適用
+            finalPowerX *= brokenPowerMultiplier;
+            finalPowerY *= brokenPowerMultiplier;
+        }
+
 
         // ① 木箱への攻撃
         float facingDirection = GetFacingDirection();
@@ -533,16 +550,17 @@ public class bat : MonoBehaviour
         // すでに何かアイテムを持っている場合は、新しいアイテムを取得しない
         AutoGuardItem currentGuard = GetComponent<AutoGuardItem>();
         Controller currentController = GetComponent<Controller>();
-
+        // ★変更：hasBrokenBat のチェックを追加
         if (hasMetalBat ||
-            (currentGuard != null && currentGuard.hasItem) ||
-            (currentController != null && currentController.hasSpeedUpItem))
+        hasBrokenBat ||
+        (currentGuard != null && currentGuard.hasItem) ||
+        (currentController != null && currentController.hasSpeedUpItem))
         {
             Debug.Log("すでにアイテムを持っているため、新しいアイテムは取得できません。");
             return;
         }
-        // 0～2の3種類からランダム選択
-        int itemNumber = Random.Range(0, 3);
+        // ★変更：0～3の4種類からランダム選択
+        int itemNumber = Random.Range(0, 4);
 
         switch (itemNumber)
         {
@@ -579,8 +597,16 @@ public class bat : MonoBehaviour
                     Debug.Log("10秒間スピードが1.3倍になりました！");
                 }
                 break;
+
+            case 3:
+                // ★追加：壊れかけのバット
+                EquipBrokenBat();
+                Debug.Log("壊れかけのバットを入手してしまった！");
+                break;
         }
     }
+
+
 
     // 木箱を壊したプレイヤーが金属バットを入手
     public void EquipMetalBat()
@@ -594,19 +620,6 @@ public class bat : MonoBehaviour
         Debug.Log("金属バットを入手！見た目を表示しました。");
     }
 
-    // 敵に攻撃が命中したときだけ耐久値を減らす
-    public void OnSuccessfulHit()
-    {
-        if (!hasMetalBat)
-            return;
-
-        metalBatDurability--;
-
-        Debug.Log("金属バット残り耐久：" + metalBatDurability);
-
-        if (metalBatDurability <= 0)
-            BreakMetalBat();
-    }
 
     private void BreakMetalBat()
     {
@@ -619,5 +632,47 @@ public class bat : MonoBehaviour
         if (batSpriteRenderer != null && woodenBatSprite != null)
             batSpriteRenderer.sprite = woodenBatSprite;
     }
+    // --- ★追加：壊れかけのバットの処理 ---
+    public void EquipBrokenBat()
+    {
+        hasBrokenBat = true;
+        brokenBatDurability = 3; // 3回で壊れる
+        if (brokenBatObject != null)
+            brokenBatObject.SetActive(true);
+        Debug.Log("壊れかけのバットを装備！見た目を表示しました。");
+    }
+    private void BreakBrokenBat()
+    {
+        hasBrokenBat = false;
+        brokenBatDurability = 1;
+        if (brokenBatObject != null)
+            brokenBatObject.SetActive(false);
+        if (batSpriteRenderer != null && woodenBatSprite != null)
+            batSpriteRenderer.sprite = woodenBatSprite;
+    }
+    // --------------------------------------
+    // 敵に攻撃が命中したときだけ耐久値を減らす
+    public void OnSuccessfulHit()
+    {
+        // 金属バットの耐久減少
+        if (hasMetalBat)
+        {
+            metalBatDurability--;
+            Debug.Log("金属バット残り耐久：" + metalBatDurability);
+            if (metalBatDurability <= 0)
+                BreakMetalBat();
+        }
+        // ★追加：壊れかけのバットの耐久減少
+        if (hasBrokenBat)
+        {
+            brokenBatDurability--;
+            Debug.Log("壊れかけのバット残り耐久：" + brokenBatDurability);
+            if (brokenBatDurability <= 0)
+                BreakBrokenBat();
+        }
+    }
 }
+
+
+
 
