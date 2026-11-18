@@ -8,6 +8,12 @@ public class TitleController : MonoBehaviour
 {
     public Button[] buttons;
 
+    // ’Êí‚Ì‰æ‘œ
+    public Sprite[] normalImages;
+
+    // ‘I‘ğ‚Ì‰æ‘œ
+    public Sprite[] selectedImages;
+
     public Color normalColor = Color.white;
     public Color selectedColor = Color.yellow;
 
@@ -59,10 +65,16 @@ public class TitleController : MonoBehaviour
     {
         for (int i = 0; i < buttons.Length; i++)
         {
-            ColorBlock colors = buttons[i].colors;
-            colors.normalColor =
-                (i == selectedIndex) ? selectedColor : normalColor;
-            buttons[i].colors = colors;
+            Image buttonImage = buttons[i].GetComponent<Image>();
+
+            if (i == selectedIndex)
+            {
+                buttonImage.sprite = selectedImages[i];
+            }
+            else
+            {
+                buttonImage.sprite = normalImages[i];
+            }
         }
     }
 }
