@@ -89,6 +89,11 @@ public class bat : MonoBehaviour
     public Controller controller;
     public AutoGuardItem shield;
 
+    // 溜め演出
+    private int currentChargeStage = 0;
+    private Coroutine flashCoroutine;
+    private Color originalColor = Color.white;
+    public RedOutline chargeOutline;
     private void Start()
     {
         controller = GetComponent<Controller>();
@@ -111,6 +116,8 @@ public class bat : MonoBehaviour
     private void Update()
     {
         Controller myController = GetComponent<Controller>();
+        if (isAttackCooldown || isAttacking)
+            return;
         //死ぬとアイテム削除
         if (controller.isDead == true)
         {
@@ -163,7 +170,19 @@ public class bat : MonoBehaviour
         if (isCharging && keyHeld)
         {
             currentChargeTime += Time.deltaTime;
+            UpdateChargeOutline();
+            if (chargeOutline != null)
+            {
+                if (currentChargeTime >= maxChargeTime)
+                    chargeOutline.SetChargeStage(2);
+                else if (currentChargeTime >= mediumChargeThreshold)
+                    chargeOutline.SetChargeStage(1);
+                else
+                    chargeOutline.SetChargeStage(0);
+            }
+
             UpdateChargeVisual();
+            UpdateChargeFlash();
 
             if (currentChargeTime >= autoReleaseTime)
             {
@@ -176,7 +195,28 @@ public class bat : MonoBehaviour
         if (isCharging && keyUp)
             ReleaseAttack();
     }
+    // 溜め段階が変わったか確認
+    private void UpdateChargeFlash()
+    {
+        int stage = 0;
 
+        if (currentChargeTime >= maxChargeTime)
+            stage = 2;
+        else if (currentChargeTime >= mediumChargeThreshold)
+            stage = 1;
+
+        if (stage == currentChargeStage)
+            return;
+
+        currentChargeStage = stage;
+
+        if (stage > 0)
+        {
+            if (flashCoroutine != null)
+                StopCoroutine(flashCoroutine);
+
+        }
+    }
     private void UpdateChargeVisual()
     {
         if (spriteRenderer == null)
@@ -291,7 +331,26 @@ public class bat : MonoBehaviour
 
     private void ReleaseAttack()
     {
+        if (chargeOutline != null)
+        {
+            chargeOutline.SetChargeStage(0);
+        }
         isCharging = false;
+
+        if (chargeOutline != null)
+            chargeOutline.SetChargeStage(0);
+
+        if (flashCoroutine != null)
+        {
+            StopCoroutine(flashCoroutine);
+            flashCoroutine = null;
+        }
+
+        if (spriteRenderer != null)
+            spriteRenderer.color = originalColor;
+
+        currentChargeStage = 0;
+
 
         float releasedChargeTime = currentChargeTime;
         currentChargeTime = 0f;
@@ -542,7 +601,6 @@ public class bat : MonoBehaviour
 
         isAttackCooldown = false;
     }
-    // 木箱を壊したプレイヤーにランダムでアイテムを付与
 
     // 木箱を壊したプレイヤーにランダムでアイテムを付与
     public void GetRandomItem()
@@ -669,6 +727,24 @@ public class bat : MonoBehaviour
             Debug.Log("壊れかけのバット残り耐久：" + brokenBatDurability);
             if (brokenBatDurability <= 0)
                 BreakBrokenBat();
+        }
+    }
+    private void UpdateChargeOutline()
+    {
+        if (chargeOutline == null)
+            return;
+
+        if (currentChargeTime >= maxChargeTime)
+        {
+            chargeOutline.SetChargeStage(2);
+        }
+        else if (currentChargeTime >= mediumChargeThreshold)
+        {
+            chargeOutline.SetChargeStage(1);
+        }
+        else
+        {
+            chargeOutline.SetChargeStage(0);
         }
     }
 }
