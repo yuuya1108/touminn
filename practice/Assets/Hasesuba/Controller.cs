@@ -69,6 +69,9 @@ public class Controller : MonoBehaviour
     // ノックバック後、一度地面から離れたか
     private bool hasLeftGround = false;
 
+    public float spinSpeed = 720f;
+    private Coroutine rotateCoroutine;
+
     //アイテム
     //シールド
     public bool isItemStunned = false;
@@ -311,6 +314,9 @@ public class Controller : MonoBehaviour
     {
         // 操作をロック
         isKnockback = true;
+        if (!player2)
+            animator.SetBool("isKnockback", true);
+
         isJumping = false;
         jumpBlocked = false;
 
@@ -321,6 +327,10 @@ public class Controller : MonoBehaviour
         rb.linearVelocity = Vector2.zero;
         rb.linearVelocity = new Vector2(powerX, powerY);
 
+        // ★回転を始める(ここは「呼ぶ2行」)
+        if (rotateCoroutine != null) StopCoroutine(rotateCoroutine);
+        rotateCoroutine = StartCoroutine(SpinUntilLandRoutine(-Mathf.Sign(powerX)));
+
         // 一度地面から離れ、再び着地するまで待つ
         while (!hasLeftGround || !isGrounded)
         {
@@ -329,6 +339,20 @@ public class Controller : MonoBehaviour
 
         // 着地したので操作を解禁
         isKnockback = false;
+        if (!player2)
+            animator.SetBool("isKnockback", false);
+    }
+
+    IEnumerator SpinUntilLandRoutine(float dir)
+    {
+        float angle = 0f;
+        while (isKnockback)
+        {
+            angle += spinSpeed * dir * Time.deltaTime;
+            transform.rotation = Quaternion.Euler(0f, 0f, angle);
+            yield return null;
+        }
+        transform.rotation = Quaternion.identity;
     }
 
     // =========================
@@ -702,12 +726,6 @@ public class Controller : MonoBehaviour
                 transform.position.z
             );
 
-            // 復活アニメーション再生
-            if (animator != null)
-            {
-                animator.Play("Respawn", 0, 0f);
-            }
-
             //土埃
             if(respawnDust!=null)
             {
@@ -719,6 +737,13 @@ public class Controller : MonoBehaviour
             isKnockback = false;
             isJumping = false;
             isDead = false;
+
+            // 復活アニメーション再生
+            if (animator != null && !player2)
+            {
+                    animator.SetBool("isKnockback", false);
+                    animator.Play("Respawn", 0, 0f);
+            }
 
             //リスポーンサウンド
             if (respawnsound != null && audioSource != null)

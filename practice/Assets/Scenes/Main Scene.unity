@@ -213,6 +213,7 @@ GameObject:
   - component: {fileID: 240772906}
   - component: {fileID: 240772905}
   - component: {fileID: 240772904}
+  - component: {fileID: 240772907}
   m_Layer: 0
   m_Name: player1
   m_TagString: Player
@@ -246,6 +247,7 @@ MonoBehaviour:
   deadsound: {fileID: 8300000, guid: 47228ffae334a244da08f1ee6cd1adc9, type: 3}
   Bat: {fileID: 0}
   isAttackLocked: 0
+  spinSpeed: 720
   isItemStunned: 0
   spriteRenderer: {fileID: 240772897}
   hasSpeedUpItem: 0
@@ -608,6 +610,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   knockbackDuration: 0.1
+--- !u!95 &240772907
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 240772895}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 4ecb6a8bc1b3b9e4c8568b130aac1639, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &355854015
 GameObject:
   m_ObjectHideFlags: 0
@@ -976,6 +1000,7 @@ MonoBehaviour:
   deadsound: {fileID: 8300000, guid: 47228ffae334a244da08f1ee6cd1adc9, type: 3}
   Bat: {fileID: 0}
   isAttackLocked: 0
+  spinSpeed: 720
   isItemStunned: 0
   spriteRenderer: {fileID: 363107553}
   hasSpeedUpItem: 0
