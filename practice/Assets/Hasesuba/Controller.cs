@@ -105,11 +105,14 @@ public class Controller : MonoBehaviour
     {
         if (isItemStunned)
         {
-            // シールド硬直中でも、ノックバック中なら速度をゼロにしない
+            // 横方向だけ停止して、落下速度は維持する
             if (!GetComponent<PlayerKnockback>().IsKnockbacked
                 && !isKnockback)
             {
-                rb.linearVelocity = Vector2.zero;
+                rb.linearVelocity = new Vector2(
+                    0f,
+                    rb.linearVelocity.y
+                );
             }
 
             return;
