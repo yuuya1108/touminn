@@ -1,22 +1,22 @@
 
 using System.Collections;
 using UnityEngine;
-public class PlayerKnockback : MonoBehaviour 
-{ 
-    private Rigidbody2D rb; 
-    private bool isKnockbacked = false; 
+public class PlayerKnockback : MonoBehaviour
+{
+    private Rigidbody2D rb;
+    private bool isKnockbacked = false;
     // ノックバックが持続する時間（秒）
-    [SerializeField] private float knockbackDuration = 0.1f; 
-    private void Awake() 
-    { 
-        rb = GetComponent<Rigidbody2D>(); 
-    } 
+    [SerializeField] private float knockbackDuration = 0.1f;
+    private void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+    }
     // 外部から呼ばれるノックバック開始メソッド
-    public void ApplyKnockback(Vector2 direction, float force) 
-    { 
-        if (isKnockbacked) return; 
+    public void ApplyKnockback(Vector2 direction, float force)
+    {
+        if (isKnockbacked) return;
         // すでにノックバック中なら重ねて処理しない
-        StartCoroutine(KnockbackRoutine(direction, force)); 
+        StartCoroutine(KnockbackRoutine(direction, force));
     }
     private IEnumerator KnockbackRoutine(Vector2 direction, float force)
     {
@@ -29,7 +29,17 @@ public class PlayerKnockback : MonoBehaviour
         // 5. 操作可能に戻す
         isKnockbacked = false;
     }
-        
-    // ★重要★ 通常の移動スクリプト側でこのフラグを参照し、trueなら移動入力を無視させてください
-    public bool IsKnockbacked => isKnockbacked; 
+    // ノックバック中か確認
+    // ノックバック中か確認
+    public bool IsKnockbacked => isKnockbacked;
+
+    // 吹っ飛びを強制終了
+    public void StopKnockback()
+    {
+        StopAllCoroutines();
+
+        rb.linearVelocity = Vector2.zero;
+
+        isKnockbacked = false;
+    }
 }

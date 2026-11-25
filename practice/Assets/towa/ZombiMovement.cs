@@ -1,63 +1,139 @@
+
 using UnityEngine;
+
 public class ZombieMovement : MonoBehaviour
 {
-    public float moveSpeed = 3.0f; 
-    // 移動速度
-    public float changeDirectionTime = 4.0f;
-    // 向きを変える時間（秒）
+    [Header("移動")]
+    public float moveSpeed = 3f;
+    public float changeDirectionTime = 4f;
+
+    [Header("追跡")]
+    public float searchRange = 15f;
 
     [Header("地面から出る設定")]
-    public float riseSpeed = 2.0f;
+    public float riseSpeed = 2f;
+
     private float targetY;
     private bool isRising = true;
 
-    private Rigidbody2D rb; 
-    private float timer; 
-    private int direction = 1;
-    // 1 = 右, -1 = 左
-    private int moveDirection = 1;
+    private Rigidbody2D rb;
     private ZombieKnockback knockback;
-    void Start() 
+    private EnemyTouchDamage enemyTouchDamage;
+
+    private int direction = 1;
+    private float timer;
+
+    private Transform target;
+    private bool wasKnockedBack;
+
+    void Start()
     {
+        rb = GetComponent<Rigidbody2D>();
         knockback = GetComponent<ZombieKnockback>();
-        rb = GetComponent<Rigidbody2D>(); 
+        enemyTouchDamage = GetComponentInChildren<EnemyTouchDamage>();
+
         timer = changeDirectionTime;
-        // 1. 本来の地面のY座標を覚えておく
-        targetY = transform.position.y; 
-        // 2. ゾンビの初期位置を「自分の身長分（約1.5メートル）」だけ地面の下に沈める
-        transform.position = new Vector3(transform.position.x, targetY - 1.5f, transform.position.z);
-        // 3. せり上がる間は物理（重力など）を一時的に無効化する
+
+        targetY = transform.position.y;
+
+        transform.position = new Vector3(
+            transform.position.x,
+            targetY - 1.5f,
+            transform.position.z
+        );
+
         rb.bodyType = RigidbodyType2D.Kinematic;
         rb.linearVelocity = Vector2.zero;
-        // 生成時にランダムな向き（右か左）にする
-        direction = Random.Range(0, 2) == 0 ? 1 : -1; 
-        UpdateSpriteDirection(); 
-    } 
-    void Update() 
-    { 
-        //地面から出ている最中の処理
-        if(isRising)
+
+        direction = Random.Range(0, 2) == 0 ? 1 : -1;
+
+        UpdateSpriteDirection();
+    }
+
+    void Update()
+    {
+        if (isRising)
         {
             RiseFromGround();
             return;
         }
-        if (knockback != null && knockback.IsKnockedBack())
+
+        bool knockedBack = knockback != null &&
+                           knockback.IsKnockedBack();
+
+        // ノックバック中
+        if (knockedBack)
+        {
+            wasKnockedBack = true;
+            target = null;
             return;
-        // 一定時間ごとに自動で向きを変える
-        timer -= Time.deltaTime; 
-        if (timer <= 0) 
-        { 
-            ChangeDirection(); 
-        } 
+        }
+
+        // ノックバック終了直後
+        if (wasKnockedBack)
+        {
+            wasKnockedBack = false;
+
+            target = FindNearestPlayer();
+
+            if (target != null)
+            {
+                direction = target.position.x >= transform.position.x
+                    ? 1 : -1;
+
+                UpdateSpriteDirection();
+            }
+
+            timer = changeDirectionTime;
+        }
+
+        // 攻撃中は追跡しない
+        if (enemyTouchDamage != null &&
+            enemyTouchDamage.IsAttacking)
+        {
+            return;
+        }
+
+        // 常に一番近いプレイヤーを探す
+        target = FindNearestPlayer();
+
+        if (target != null)
+        {
+
+
+            direction = target.position.x >= transform.position.x
+                ? 1 : -1;
+
+            UpdateSpriteDirection();
+
+            return;
+        }
+
+        // プレイヤーがいない場合は方向転換
+        timer -= Time.deltaTime;
+
+        if (timer <= 0f)
+        {
+            ChangeDirection();
+        }
     }
 
     void FixedUpdate()
     {
-        if (isRising) return;
-
-        // 吹っ飛び中は通常移動を停止
-        if (knockback != null && knockback.IsKnockedBack())
+        if (isRising)
             return;
+
+        if (knockback != null &&
+            knockback.IsKnockedBack())
+            return;
+
+        // 攻撃中は完全停止
+        if (enemyTouchDamage != null &&
+            enemyTouchDamage.IsAttacking)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
 
         rb.linearVelocity = new Vector2(
             direction * moveSpeed,
@@ -65,26 +141,62 @@ public class ZombieMovement : MonoBehaviour
         );
     }
 
-    // 地面からせり上がる処理
+    Transform FindNearestPlayer()
+    {
+        GameObject[] players =
+            GameObject.FindGameObjectsWithTag("Player");
+
+        Transform nearest = null;
+        float nearestDistance = searchRange;
+
+        foreach (GameObject player in players)
+        {
+            // ゾンビより上にいるプレイヤーは追跡対象から除外
+            if (player.transform.position.y >
+                transform.position.y + 0.5f)
+            {
+                continue;
+            }
+
+            float distance = Mathf.Abs(
+                player.transform.position.x - transform.position.x
+            );
+
+            if (distance < nearestDistance)
+            {
+                nearestDistance = distance;
+                nearest = player.transform;
+            }
+        }
+
+        return nearest;
+    }
+
     void RiseFromGround()
-    { 
-        // ターゲットのY座標に向かって少しずつ移動させる
-        float newY = Mathf.MoveTowards(transform.position.y, targetY, riseSpeed * Time.deltaTime); 
-        transform.position = new Vector3(transform.position.x, newY, transform.position.z); 
-        // 目標の高さ（地面）に到達したら
-        if (Mathf.Approximately(transform.position.y, targetY)) 
-        { 
-            isRising = false; 
-            // 出現完了！
-            rb.bodyType = RigidbodyType2D.Dynamic; 
-            // 物理演算を元に戻して歩き出せるようにする
-        } 
+    {
+        float newY = Mathf.MoveTowards(
+            transform.position.y,
+            targetY,
+            riseSpeed * Time.deltaTime
+        );
+
+        transform.position = new Vector3(
+            transform.position.x,
+            newY,
+            transform.position.z
+        );
+
+        if (Mathf.Approximately(transform.position.y, targetY))
+        {
+            isRising = false;
+            rb.bodyType = RigidbodyType2D.Dynamic;
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // ノックバック中は向きを変えない
-        if (knockback != null && knockback.IsKnockedBack())
+        if (knockback != null &&
+            knockback.IsKnockedBack())
             return;
 
         if (collision.gameObject.CompareTag("Enemy"))
@@ -92,31 +204,23 @@ public class ZombieMovement : MonoBehaviour
             ChangeDirection();
         }
     }
-    void ChangeDirection() 
+
+    void ChangeDirection()
     {
         direction *= -1;
-        UpdateSpriteDirection(); 
-        timer = changeDirectionTime; 
-    } 
-    void UpdateSpriteDirection() 
-    { 
-        // スプライトの向きを進行方向に合わせる（X軸のスケールを反転）
-        Vector3 localScale = transform.localScale; 
-        if ((direction > 0 && localScale.x < 0) || (direction < 0 && localScale.x > 0)) 
-        { 
-            localScale.x *= -1;
-            transform.localScale = localScale; 
-        } 
+        UpdateSpriteDirection();
+        timer = changeDirectionTime;
     }
-    void ReverseDirection()
-    { 
-        // 方向を反転（1なら-1に、-1なら1にする）
-        moveDirection *= -1; 
-        // 見た目（スプライト）も反転させる場合
-        Vector3 newScale = transform.localScale; 
-        newScale.x *= -1; 
-        transform.localScale = newScale; 
+
+    void UpdateSpriteDirection()
+    {
+        Vector3 scale = transform.localScale;
+
+        if ((direction > 0 && scale.x < 0) ||
+            (direction < 0 && scale.x > 0))
+        {
+            scale.x *= -1;
+            transform.localScale = scale;
+        }
     }
 }
-
-

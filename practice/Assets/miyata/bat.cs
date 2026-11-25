@@ -488,7 +488,8 @@ public class bat : MonoBehaviour
             }
         }
 
-        // ‡A UŒ‚”ÍˆÍ“à‚Ìƒ]ƒ“ƒr‚ğ’T‚·
+
+        // ‡A ƒ]ƒ“ƒr‚Ö‚ÌUŒ‚
         float direction = GetFacingDirection();
 
         Vector2 attackCenter = new Vector2(
@@ -516,14 +517,18 @@ public class bat : MonoBehaviour
             float directionX =
                 zombie.transform.position.x >= transform.position.x ? 1f : -1f;
 
+            Controller attacker = GetComponent<Controller>();
+
             zombie.GetKnockedBack(
-                directionX * finalPowerX,
-                finalPowerY
-            );
+            directionX * finalPowerX,
+            finalPowerY,
+             GetComponent<Controller>()
+          );
 
             OnSuccessfulHit();
             return true;
         }
+
 
         // ‡B ‘ŠèƒvƒŒƒCƒ„[‚Ö‚ÌUŒ‚
         if (enemy != null)

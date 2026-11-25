@@ -81,6 +81,10 @@ public class Controller : MonoBehaviour
     public SpriteRenderer spriteRenderer;
 
     public bool hasSpeedUpItem = false;
+
+    private Coroutine knockbackCoroutine;
+
+    private bool hasSeparatedFromEnemyDuringKnockback = false;//追加
     void Start()
     {
         Bat = GetComponent<bat>();
@@ -306,14 +310,30 @@ public class Controller : MonoBehaviour
     // 攻撃を受けたときに呼ばれる
     public void ReceiveKnockback(float powerX, float powerY, float duration)
     {
-        StopCoroutine(nameof(KnockbackRoutine));
-        StartCoroutine(KnockbackRoutine(powerX, powerY, duration));
+        Debug.Log($"ノックバック受付 X={powerX}, Y={powerY}");
+
+        if (knockbackCoroutine != null)
+            StopCoroutine(knockbackCoroutine);
+
+        isKnockback = true;
+        hasLeftGround = !isGrounded;
+
+        // 攻撃を受けた瞬間の重なりは無視する
+        hasSeparatedFromEnemyDuringKnockback = false;
+
+        rb.linearVelocity = new Vector2(powerX, powerY);
+
+        knockbackCoroutine =
+            StartCoroutine(KnockbackRoutine(powerX, powerY, duration));
     }
 
     IEnumerator KnockbackRoutine(float powerX, float powerY, float duration)
     {
+        Debug.Log($"速度設定後 X={rb.linearVelocity.x}, Y={rb.linearVelocity.y}");
         // 操作をロック
         isKnockback = true;
+        isJumping = false;
+        jumpBlocked = false;
         if (!player2)
             animator.SetBool("isKnockback", true);
 
@@ -337,8 +357,11 @@ public class Controller : MonoBehaviour
             yield return null;
         }
 
+
+
         // 着地したので操作を解禁
         isKnockback = false;
+        knockbackCoroutine = null;
         if (!player2)
             animator.SetBool("isKnockback", false);
     }
@@ -528,8 +551,46 @@ public class Controller : MonoBehaviour
     // =========================
     void FixedUpdate()
     {
+        CheckKnockbackPlayerCollision();
+
         PreventJumpPassing();
         PreventPlayerCrossing();
+    }
+    private void CheckKnockbackPlayerCollision()
+    {
+        if (!isKnockback || enemy == null)
+            return;
+
+        Collider2D myCollider = GetComponent<Collider2D>();
+        Collider2D enemyCollider = enemy.GetComponent<Collider2D>();
+
+        if (myCollider == null || enemyCollider == null)
+            return;
+
+        // 一度相手から離れたことを確認
+        if (!myCollider.bounds.Intersects(enemyCollider.bounds))
+        {
+            hasSeparatedFromEnemyDuringKnockback = true;
+            return;
+        }
+
+        // 最初から重なっている場合は吹っ飛びを止めない
+        if (!hasSeparatedFromEnemyDuringKnockback)
+            return;
+
+        // 一度離れた後、再び接触したら停止
+        if (knockbackCoroutine != null)
+        {
+            StopCoroutine(knockbackCoroutine);
+            knockbackCoroutine = null;
+        }
+
+        isKnockback = false;
+        hasLeftGround = false;
+
+        rb.linearVelocity = Vector2.zero;
+
+        Debug.Log("相手プレイヤーに再接触！ノックバック停止！");
     }
 
     // =========================
@@ -584,6 +645,27 @@ public class Controller : MonoBehaviour
     //ジャンプ　地面にいるか検知     
     void OnCollisionEnter2D(Collision2D collision)
     {
+        // プレイヤー同士が衝突したとき
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            // 自分が吹っ飛んでいるなら停止
+            PlayerKnockback myKnockback =
+                GetComponent<PlayerKnockback>();
+
+            if (myKnockback != null && myKnockback.IsKnockbacked)
+            {
+                myKnockback.StopKnockback();
+            }
+
+            // 相手が吹っ飛んでいるなら停止
+            PlayerKnockback enemyKnockback =
+                collision.gameObject.GetComponent<PlayerKnockback>();
+
+            if (enemyKnockback != null && enemyKnockback.IsKnockbacked)
+            {
+                enemyKnockback.StopKnockback();
+            }
+        }
         if (collision.gameObject.CompareTag("Ground"))
         {
             foreach (ContactPoint2D contact in collision.contacts)
@@ -598,17 +680,17 @@ public class Controller : MonoBehaviour
                 }
             }
         }
-
         foreach (ContactPoint2D contact in collision.contacts)
         {
             //側面にぶつかった場合
-            if (Mathf.Abs(contact.normal.x) > 0.5f)
+            if (!isKnockback && Mathf.Abs(contact.normal.x) > 0.5f)
             {
+
                 jumpHorizontalspeed = 0f;
                 rb.linearVelocity = new Vector2(
                     0f,
                     rb.linearVelocity.y
-                    );
+                );
 
                 break;
             }
@@ -727,7 +809,7 @@ public class Controller : MonoBehaviour
             );
 
             //土埃
-            if(respawnDust!=null)
+            if (respawnDust != null)
             {
                 respawnDust.Play();
             }
@@ -741,8 +823,8 @@ public class Controller : MonoBehaviour
             // 復活アニメーション再生
             if (animator != null && !player2)
             {
-                    animator.SetBool("isKnockback", false);
-                    animator.Play("Respawn", 0, 0f);
+                animator.SetBool("isKnockback", false);
+                animator.Play("Respawn", 0, 0f);
             }
 
             //リスポーンサウンド
@@ -775,9 +857,11 @@ public class Controller : MonoBehaviour
     }
     private void PreventPlayerCrossing()
     {
-        if (enemy == null || rb == null || isDead)
+        if (enemy == null || rb == null || isDead || isKnockback)
             return;
 
+        if (GetComponent<PlayerKnockback>().IsKnockbacked)
+            return;
         Controller enemyController = enemy.GetComponent<Controller>();
 
         if (enemyController != null && enemyController.isDead)
