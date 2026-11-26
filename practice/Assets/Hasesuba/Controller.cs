@@ -79,6 +79,7 @@ public class Controller : MonoBehaviour
 
     //プレイヤー振り向き処理
     public SpriteRenderer spriteRenderer;
+    public Transform visual;
 
     public bool hasSpeedUpItem = false;
 
@@ -89,7 +90,7 @@ public class Controller : MonoBehaviour
     {
         Bat = GetComponent<bat>();
 
-        animator = GetComponent<Animator>();
+        animator = GetComponentInChildren<Animator>();
 
         audioSource = GetComponent<AudioSource>();
 
@@ -246,32 +247,15 @@ public class Controller : MonoBehaviour
                 float moveSpeed = inputX * speed;
 
                 // プレイヤーの振り向き
-
                 if (!player2)
-
                 {
-                    if (inputX > 0)
-                    {
-                        spriteRenderer.flipX = false;
-                    }
-
-                    else if (inputX < 0)
-                    {
-                        spriteRenderer.flipX = true;
-                    }
+                    if (inputX > 0) SetFacing(true);
+                    else if (inputX < 0) SetFacing(false);
                 }
-
                 else
                 {
-                    if (inputX < 0)
-                    {
-                        spriteRenderer.flipX = false;
-                    }
-
-                    else if (inputX > 0)
-                    {
-                        spriteRenderer.flipX = true;
-                    }
+                    if (inputX < 0) SetFacing(true);
+                    else if (inputX > 0) SetFacing(false);
                 }
 
 
@@ -923,6 +907,14 @@ public class Controller : MonoBehaviour
 
         speed = originalSpeed;
         hasSpeedUpItem = false;
+    }
+
+    //振り向き
+    void SetFacing(bool faceRight)
+    {
+        Vector3 s = visual.localScale;
+        s.x = Mathf.Abs(s.x) * (faceRight ? 1f : -1f);
+        visual.localScale = s;
     }
 
     //// =========================

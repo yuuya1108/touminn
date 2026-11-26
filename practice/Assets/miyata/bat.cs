@@ -101,9 +101,9 @@ public class bat : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
 
         if (spriteRenderer == null)
-            spriteRenderer = GetComponent<SpriteRenderer>();
+            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
 
-        batSpriteRenderer = GetComponent<SpriteRenderer>();
+        batSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
 
         if (batSpriteRenderer != null)
             woodenBatSprite = batSpriteRenderer.sprite;
@@ -242,15 +242,11 @@ public class bat : MonoBehaviour
 
     private float GetFacingDirection()
     {
-        if (spriteRenderer != null)
+        if (controller != null && controller.visual != null)
         {
-            bool facingRight = player2
-                ? spriteRenderer.flipX
-                : !spriteRenderer.flipX;
-
-            return facingRight ? 1f : -1f;
+            bool facingRight = controller.visual.localScale.x > 0f;
+            return player2 ? (facingRight ? -1f : 1f) : (facingRight ? 1f : -1f);
         }
-
         return player2 ? -1f : 1f;
     }
 
