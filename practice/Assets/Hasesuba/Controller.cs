@@ -82,8 +82,14 @@ public class Controller : MonoBehaviour
     public SpriteRenderer spriteRenderer;
     public Transform visual;
     public GameObject batHolder;
-
+    //スピードアップアイテム
     public bool hasSpeedUpItem = false;
+    private Coroutine speedUpCoroutine;
+    // スピードアップ前の速度を保存
+    private float originalSpeed;
+    private float originalJumpForwardSpeed;
+    // スピードアップの古いコルーチンを無効にするための番号
+    private int speedUpVersion = 0;
 
     private Coroutine knockbackCoroutine;
 
@@ -696,7 +702,16 @@ public class Controller : MonoBehaviour
         {
             isDead = true;
             isJumping = false;
+            // スピードアップ中なら効果を解除
+            if (hasSpeedUpItem)
+            {
+                speedUpVersion++;
 
+                speed = originalSpeed;
+                jumpForwardSpeed = originalJumpForwardSpeed;
+
+                hasSpeedUpItem = false;
+            }
             //バットの見た目消す
             if (batHolder != null)
                 batHolder.SetActive(false);
@@ -895,13 +910,27 @@ public class Controller : MonoBehaviour
 
         hasSpeedUpItem = true;
 
-        float originalSpeed = speed;
+        // 現在の速度を保存
+        originalSpeed = speed;
+        originalJumpForwardSpeed = jumpForwardSpeed;
 
+        // スピードアップ
         speed *= 1.5f;
+        jumpForwardSpeed *= 1.5f;
+
+        // 今回のスピードアップ番号を保存
+        int myVersion = ++speedUpVersion;
 
         yield return new WaitForSeconds(10f);
 
+        // 死亡などで解除済みなら何もしない
+        if (myVersion != speedUpVersion)
+            yield break;
+
+        // 元の速度に戻す
         speed = originalSpeed;
+        jumpForwardSpeed = originalJumpForwardSpeed;
+
         hasSpeedUpItem = false;
     }
 

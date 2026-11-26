@@ -5131,6 +5131,7 @@ MonoBehaviour:
   jumpForwardSpeed: 13
   slowDistance: 4
   isDead: 0
+  isRespawning: 0
   respawnDust: {fileID: 925243531}
   jumpsound: {fileID: 8300000, guid: f31f2032cb0149f47906358d3e7d8395, type: 3}
   respawnsound: {fileID: 8300000, guid: 8a7ea4350cb7fcc408cd2899512e3009, type: 3}
@@ -5141,6 +5142,7 @@ MonoBehaviour:
   isItemStunned: 0
   spriteRenderer: {fileID: 1540006987}
   visual: {fileID: 636701442}
+  batHolder: {fileID: 0}
   hasSpeedUpItem: 0
 --- !u!212 &240772897
 SpriteRenderer:
@@ -5974,6 +5976,7 @@ MonoBehaviour:
   jumpForwardSpeed: 13
   slowDistance: 4
   isDead: 0
+  isRespawning: 0
   respawnDust: {fileID: 0}
   jumpsound: {fileID: 8300000, guid: f31f2032cb0149f47906358d3e7d8395, type: 3}
   respawnsound: {fileID: 8300000, guid: 8a7ea4350cb7fcc408cd2899512e3009, type: 3}
@@ -5984,6 +5987,7 @@ MonoBehaviour:
   isItemStunned: 0
   spriteRenderer: {fileID: 363107553}
   visual: {fileID: 1503944468}
+  batHolder: {fileID: 0}
   hasSpeedUpItem: 0
 --- !u!212 &363107553
 SpriteRenderer:
