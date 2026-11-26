@@ -134,7 +134,7 @@ public class bat : MonoBehaviour
             return;
 
         if (myController != null &&
-            (myController.isItemStunned || myController.isDead))
+            (myController.isItemStunned || myController.isDead || myController.isRespawning))
             return;
 
         KeyCode attackKey = player2

@@ -44,6 +44,7 @@ public class Controller : MonoBehaviour
 
     //死亡判定
     public bool isDead = false;
+    public bool isRespawning = false;
 
     //リスポーン
     private Transform lastAttacker;
@@ -80,6 +81,7 @@ public class Controller : MonoBehaviour
     //プレイヤー振り向き処理
     public SpriteRenderer spriteRenderer;
     public Transform visual;
+    public GameObject batHolder;
 
     public bool hasSpeedUpItem = false;
 
@@ -139,6 +141,13 @@ public class Controller : MonoBehaviour
             Dead();
         }
 
+        // 復活アニメ中は動けない(落下だけ続ける)
+        if (isRespawning)
+        {
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            return;
+        }
+
         //シールド硬直
         if (isItemStunned && !isDead && !isKnockback)
         {
@@ -146,32 +155,6 @@ public class Controller : MonoBehaviour
             return;
         }
 
-        //// =========================
-        //// 吹き飛ばし
-        //// =========================
-        //if (!isKnockback && !isDead)
-        //{
-        //    //距離
-        //    float distance = Mathf.Abs(
-        //        enemy.position.x - transform.position.x);
-
-        //    //P1
-        //    if (!player2 && Input.GetKeyDown(KeyCode.Joystick2Button1) && distance <= 2f)
-        //    {
-        //        rb.linearVelocity = new Vector2(
-        //            -knockbackPower, knockbackUp);
-
-        //        StartCoroutine(Knockback());
-        //    }
-        //    //P2
-        //    if (player2 && Input.GetKeyDown(KeyCode.Joystick1Button1) && distance <= 2f)
-        //    {
-        //        rb.linearVelocity = new Vector2(
-        //            knockbackPower, knockbackUp);
-
-        //        StartCoroutine(Knockback());
-        //    }
-        //}
         if (GetComponent<PlayerKnockback>().IsKnockbacked)
         {
             return;
@@ -714,6 +697,10 @@ public class Controller : MonoBehaviour
             isDead = true;
             isJumping = false;
 
+            //バットの見た目消す
+            if (batHolder != null)
+                batHolder.SetActive(false);
+
             if (deadsound != null && audioSource != null)
             {
                 audioSource.PlayOneShot(deadsound);
@@ -803,6 +790,7 @@ public class Controller : MonoBehaviour
             isKnockback = false;
             isJumping = false;
             isDead = false;
+            isRespawning = true;
 
             // 復活アニメーション再生
             if (animator != null && !player2)
@@ -816,6 +804,14 @@ public class Controller : MonoBehaviour
             {
                 audioSource.PlayOneShot(respawnsound, 1f);
             }
+
+            // アニメが終わるまでバットは隠したまま待つ
+            yield return new WaitForSeconds(0.5f);
+
+            if (batHolder != null)
+                batHolder.SetActive(true);
+
+            isRespawning = false;
         }
     }
 
