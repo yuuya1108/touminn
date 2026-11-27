@@ -716,6 +716,7 @@ public class Controller : MonoBehaviour
 
                 hasSpeedUpItem = false;
             }
+
             //バットの見た目消す
             if (batHolder != null)
                 batHolder.SetActive(false);
@@ -812,7 +813,7 @@ public class Controller : MonoBehaviour
             isRespawning = true;
 
             // 復活アニメーション再生
-            if (animator != null && !player2)
+            if (animator != null)
             {
                 animator.SetBool("isKnockback", false);
                 animator.Play("Respawn", 0, 0f);
