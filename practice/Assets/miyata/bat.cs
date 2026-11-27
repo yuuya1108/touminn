@@ -103,7 +103,7 @@ public class bat : MonoBehaviour
         if (spriteRenderer == null)
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
 
-        batSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        batSpriteRenderer = spriteRenderer;
 
         if (batSpriteRenderer != null)
             woodenBatSprite = batSpriteRenderer.sprite;

@@ -26,7 +26,7 @@ public class Controller : MonoBehaviour
     public float slowDistance = 3f;
 
     private Rigidbody2D rb;
-    private Animator animator;
+    public Animator animator;
 
     private bool isKnockback = false;
 
@@ -98,6 +98,7 @@ public class Controller : MonoBehaviour
     {
         Bat = GetComponent<bat>();
 
+        if (animator == null)
         animator = GetComponentInChildren<Animator>();
 
         audioSource = GetComponent<AudioSource>();
@@ -345,10 +346,10 @@ public class Controller : MonoBehaviour
         while (isKnockback)
         {
             angle += spinSpeed * dir * Time.deltaTime;
-            transform.rotation = Quaternion.Euler(0f, 0f, angle);
+            visual.localRotation = Quaternion.Euler(0f, 0f, angle);
             yield return null;
         }
-        transform.rotation = Quaternion.identity;
+        visual.localRotation = Quaternion.identity;
     }
 
     // =========================
@@ -560,6 +561,9 @@ public class Controller : MonoBehaviour
 
         isKnockback = false;
         hasLeftGround = false;
+
+        if (animator != null && !player2)
+            animator.SetBool("isKnockback", false);
 
         rb.linearVelocity = Vector2.zero;
 
@@ -942,15 +946,4 @@ public class Controller : MonoBehaviour
         visual.localScale = s;
     }
 
-    //// =========================
-    //// êÅÇ´îÚÇŒÇµ
-    //// =========================
-    //IEnumerator Knockback()
-    //{
-    //    isKnockback = true;
-
-    //    yield return new WaitForSeconds(1.2f);
-
-    //    isKnockback = false;
-    //}
 }

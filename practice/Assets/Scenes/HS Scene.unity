@@ -5985,7 +5985,7 @@ MonoBehaviour:
   isAttackLocked: 0
   spinSpeed: 720
   isItemStunned: 0
-  spriteRenderer: {fileID: 363107553}
+  spriteRenderer: {fileID: 275142181}
   visual: {fileID: 1503944468}
   batHolder: {fileID: 0}
   hasSpeedUpItem: 0
